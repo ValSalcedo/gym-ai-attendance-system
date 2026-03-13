@@ -1,0 +1,21 @@
+# Python
+python-ai/venv
+python-ai/__pycache__
+python-ai/*.pyc
+
+# Dataset (optional)
+python-ai/dataset
+
+# Node
+web-admin/node_modules
+
+# Environment
+python-ai/.env
+
+# Logs
+logs
+snapshots
+
+# OS
+.DS_Store
+Thumbs.db
