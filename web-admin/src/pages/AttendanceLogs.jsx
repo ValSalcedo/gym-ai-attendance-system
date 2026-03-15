@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function Attendance() {
+export default function AttendanceLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,7 +34,7 @@ export default function Attendance() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1 style={{ marginBottom: "16px" }}>Attendance Logs</h1>
+      <h2 style={{ marginBottom: "16px" }}>Attendance Logs</h2>
 
       {loading && <p>Loading attendance logs...</p>}
 
@@ -53,7 +53,7 @@ export default function Attendance() {
             cellPadding="10"
             cellSpacing="0"
             width="100%"
-            style={{ borderCollapse: "collapse", background: "#fff" }}
+            style={{ borderCollapse: "collapse" }}
           >
             <thead>
               <tr>
