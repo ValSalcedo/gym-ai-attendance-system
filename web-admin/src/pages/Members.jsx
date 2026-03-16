@@ -60,6 +60,25 @@ export default function Members() {
     }
   };
 
+    const deleteMember = async (id) => {
+
+    const confirmDelete = window.confirm("Delete this member?");
+    if (!confirmDelete) return;
+
+    try {
+
+      await axios.delete(`http://127.0.0.1:8000/api/members/${id}`);
+
+      fetchMembers();
+
+    } catch (error) {
+
+      console.error("Delete member failed", error);
+
+    }
+
+  };
+
   const enrollFace = async (memberId) => {
     try {
       await axios.post("http://127.0.0.1:5000/camera/enroll-multiple", {
@@ -161,6 +180,7 @@ export default function Members() {
               <th>Membership</th>
               <th>Status</th>
               <th>Enroll Face</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
@@ -188,6 +208,15 @@ export default function Members() {
                 <td>
                   <button onClick={()=>enrollFace(member.id)}>
                     Enroll Face
+                  </button>
+                </td>
+
+                <td>
+                  <button
+                    style={{ background: "#ff4d4d", color: "white", marginLeft: "8px" }}
+                    onClick={() => deleteMember(member.id)}
+                  >
+                    Delete
                   </button>
                 </td>
 

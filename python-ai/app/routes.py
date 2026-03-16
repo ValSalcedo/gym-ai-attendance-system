@@ -56,7 +56,9 @@ def register_routes(app):
         if not can_log_attendance(member_id_str):
             return {
                 "success": False,
-                "message": "Cooldown active. Attendance not sent."
+                "status_code": 429,
+                "message": "Cooldown active. Attendance not sent.",
+                "response": None
             }
 
         try:
@@ -64,7 +66,9 @@ def register_routes(app):
         except (TypeError, ValueError):
             return {
                 "success": False,
-                "message": "Invalid member_id from recognition result"
+                "status_code": 400,
+                "message": "Invalid member_id from recognition result",
+                "response": None
             }
 
         try:
@@ -137,7 +141,8 @@ def register_routes(app):
         return jsonify({
             "success": True,
             "recognized": frame_result,
-            "attendance_sent": attendance_result
+            "attendance_sent": attendance_result,
+            "attendance_message": attendance_result.get("message") if attendance_result else None
         })
 
     @app.route("/camera/recognize-image", methods=["POST"])
@@ -208,7 +213,11 @@ def register_routes(app):
 
                     attendance_result = try_send_attendance(result)
                     if attendance_result:
-                        print("Attendance result:", attendance_result)
+                        print(
+                            f"[ATTENDANCE] member_id={result.get('member_id')} | "
+                            f"status={attendance_result.get('status_code')} | "
+                            f"message={attendance_result.get('message')}"
+                        )
 
                 ret, buffer = cv2.imencode(".jpg", frame)
 

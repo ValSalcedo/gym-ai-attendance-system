@@ -3,33 +3,62 @@ import axios from "axios";
 
 export default function Dashboard() {
   const [logs, setLogs] = useState([]);
+  const [members, setMembers] = useState([]);
   const [todayCount, setTodayCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [lastRecognition, setLastRecognition] = useState(null);
 
-  const fetchLogs = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/attendance/logs");
-      const data = res.data.data || [];
-      setLogs(data);
+      const [attendanceRes, memberRes] = await Promise.all([
+        axios.get("http://127.0.0.1:8000/api/attendance/logs"),
+        axios.get("http://127.0.0.1:8000/api/members"),
+      ]);
+
+      const attendanceData = attendanceRes.data.data || [];
+      const memberData = memberRes.data.data || [];
+
+      setLogs(attendanceData);
+      setMembers(memberData);
 
       const today = new Date().toDateString();
-      const todayLogs = data.filter((log) => {
+
+      const todayLogs = attendanceData.filter((log) => {
         if (!log.recognized_at) return false;
         return new Date(log.recognized_at).toDateString() === today;
       });
 
       setTodayCount(todayLogs.length);
-    } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
+      setError("");
+    } catch (err) {
+      console.error("Failed to fetch dashboard data:", err);
+      setError("Failed to load dashboard data.");
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchLastRecognition = async () => {
+    try {
+      const res = await axios.get("http://127.0.0.1:5000/camera/recognize");
+      setLastRecognition(res.data);
+    } catch (err) {
+      console.error("Failed to fetch recognition result:", err);
+    }
+  };
+
   useEffect(() => {
-    fetchLogs();
-    const interval = setInterval(fetchLogs, 3000);
-    return () => clearInterval(interval);
+    fetchDashboardData();
+    fetchLastRecognition();
+
+    const dashboardInterval = setInterval(fetchDashboardData, 3000);
+    const recognitionInterval = setInterval(fetchLastRecognition, 5000);
+
+    return () => {
+      clearInterval(dashboardInterval);
+      clearInterval(recognitionInterval);
+    };
   }, []);
 
   const formatDateTime = (value) => {
@@ -43,10 +72,24 @@ export default function Dashboard() {
     <div>
       <h2 className="page-title">Dashboard</h2>
 
+      {error && (
+        <div
+          className="card"
+          style={{
+            marginBottom: "20px",
+            border: "1px solid #ffb3b3",
+            backgroundColor: "#fff5f5",
+            color: "#cc0000",
+          }}
+        >
+          <p>{error}</p>
+        </div>
+      )}
+
       <div className="card-grid">
         <div className="card">
           <h3>Total Members</h3>
-          <p className="card-value">1</p>
+          <p className="card-value">{members.length}</p>
         </div>
 
         <div className="card">
@@ -66,7 +109,31 @@ export default function Dashboard() {
       </div>
 
       <div className="card" style={{ marginBottom: "20px" }}>
+        <h3>Last Recognition Result</h3>
+
+        {!lastRecognition ? (
+          <p>No recognition result yet.</p>
+        ) : (
+          <div>
+            <p>
+              <strong>Member:</strong>{" "}
+              {lastRecognition.recognized?.member_id ?? "Unknown"}
+            </p>
+            <p>
+              <strong>Confidence:</strong>{" "}
+              {lastRecognition.recognized?.confidence ?? "-"}
+            </p>
+            <p>
+              <strong>Status:</strong>{" "}
+              {lastRecognition.attendance_message || "No attendance action"}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="card" style={{ marginBottom: "20px" }}>
         <h3>Live CCTV Camera</h3>
+
         <img
           src="http://127.0.0.1:5000/camera/stream"
           alt="Live CCTV Stream"
