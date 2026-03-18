@@ -7,6 +7,8 @@ import {
   Activity,
   User,
   Settings,
+  BarChart,
+  ClipboardList,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
@@ -14,6 +16,11 @@ const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/members', label: 'Members', icon: Users },
   { to: '/attendance', label: 'Attendance', icon: Camera },
+
+  // ✅ NEW
+  { to: '/attendance-logs', label: 'Attendance Logs', icon: ClipboardList },
+  { to: '/reports', label: 'Reports', icon: BarChart },
+
   { to: '/routines', label: 'Routines', icon: Dumbbell },
   { to: '/exercises', label: 'Exercises', icon: Activity },
   { to: '/profile', label: 'Profile', icon: User },
@@ -36,7 +43,9 @@ export default function Sidebar() {
           <NavLink
             key={to}
             to={to}
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            className={({ isActive }) =>
+              `nav-link ${isActive ? 'active' : ''}`
+            }
           >
             <Icon size={18} />
             <span>{label}</span>

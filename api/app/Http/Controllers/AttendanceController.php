@@ -105,4 +105,17 @@ class AttendanceController extends Controller
             'data' => $logs
         ]);
     }
+    
+    public function memberLogs($id)
+    {
+        $logs = \App\Models\Attendance::with('member')
+            ->where('member_id', $id)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $logs
+        ]);
+    }
 }
