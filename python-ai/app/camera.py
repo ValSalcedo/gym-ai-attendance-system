@@ -49,9 +49,9 @@ def detect_largest_face(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(
         gray,
-        scaleFactor=1.3,
-        minNeighbors=5,
-        minSize=(30, 30)
+        scaleFactor=1.2,
+        minNeighbors=3,
+        minSize=(20, 20)
     )
 
     if len(faces) == 0:
@@ -76,7 +76,7 @@ def enroll_multiple_faces(member_id: str, sample_count: int = 5):
 
     saved_files = []
     attempts = 0
-    max_attempts = sample_count * 8
+    max_attempts = sample_count * 20
 
     while len(saved_files) < sample_count and attempts < max_attempts:
         attempts += 1
@@ -84,23 +84,37 @@ def enroll_multiple_faces(member_id: str, sample_count: int = 5):
         if not ret:
             continue
 
-        face_box, _ = detect_largest_face(frame)
+        face_box, face_count = detect_largest_face(frame)
         if face_box is None:
             continue
 
         x, y, w, h = face_box
-        face_crop = frame[y:y+h, x:x+w]
+
+        padding = 20
+        x1 = max(x - padding, 0)
+        y1 = max(y - padding, 0)
+        x2 = min(x + w + padding, frame.shape[1])
+        y2 = min(y + h + padding, frame.shape[0])
+
+        face_crop = frame[y1:y2, x1:x2]
+
+        if face_crop.size == 0:
+            continue
 
         filename = f"{member_id}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.jpg"
         filepath = os.path.join(member_folder, filename)
 
         if cv2.imwrite(filepath, face_crop):
             saved_files.append(filepath)
+            cv2.waitKey(200)
 
     cap.release()
 
     if not saved_files:
-        return {"status": "error", "message": "No face samples were captured"}
+        return {
+            "status": "error",
+            "message": "No face samples were captured. Please face the camera clearly and try again."
+        }
 
     return {
         "status": "success",
